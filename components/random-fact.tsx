@@ -63,6 +63,7 @@ export function RandomFact() {
       }
 
       openRandomFact();
+      event.currentTarget.blur();
 
       touchResetTimerRef.current = window.setTimeout(() => {
         ignoreClickAfterTouchRef.current = false;
