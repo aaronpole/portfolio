@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { facts } from "@/lib/facts";
 
@@ -23,30 +23,60 @@ export function RandomFact() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const lastIndexRef = useRef<number | null>(null);
 
+  const closeRandomFact = useCallback(() => {
+    setOpen(false);
+    setFlipped(false);
+    const dialog = dialogRef.current;
+    if (dialog && dialog.open) {
+      dialog.close();
+    }
+  }, []);
+
+  const openRandomFact = useCallback(() => {
+    const nextIndex = pickFactIndex(lastIndexRef.current);
+    lastIndexRef.current = nextIndex;
+    setFactIndex(nextIndex);
+    setFlipped(false);
+    setOpen(true);
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  }, []);
+
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
     if (open && !dialog.open) {
       dialog.showModal();
-    }
-
-    if (!open && dialog.open) {
+    } else if (!open && dialog.open) {
       dialog.close();
     }
   }, [open]);
 
-  function openRandomFact() {
-    const nextIndex = pickFactIndex(lastIndexRef.current);
-    lastIndexRef.current = nextIndex;
-    setFactIndex(nextIndex);
-    setFlipped(false);
-    setOpen(true);
-  }
+  // Lock background scrolling while open, restore on close
+  useEffect(() => {
+    if (open) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [open]);
 
-  function closeRandomFact() {
-    setOpen(false);
-  }
+  // Handle Escape key
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeRandomFact();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, closeRandomFact]);
 
   const number = String(factIndex + 1).padStart(2, "0");
   const fact = facts[factIndex];
@@ -68,19 +98,34 @@ export function RandomFact() {
         ref={dialogRef}
         className="random-fact-dialog"
         aria-labelledby="random-fact-title"
-        onClose={() => {
-          setOpen(false);
-          setFlipped(false);
+        onCancel={() => {
+          closeRandomFact();
         }}
+        onClose={closeRandomFact}
         onClick={(event) => {
-          if (event.target === event.currentTarget) closeRandomFact();
+          if (event.target === event.currentTarget) {
+            closeRandomFact();
+            return;
+          }
+          const rect = event.currentTarget.getBoundingClientRect();
+          const isInside =
+            rect.top <= event.clientY &&
+            event.clientY <= rect.bottom &&
+            rect.left <= event.clientX &&
+            event.clientX <= rect.right;
+          if (!isInside) {
+            closeRandomFact();
+          }
         }}
       >
         <h2 id="random-fact-title" className="sr-only">
           Random fact
         </h2>
 
-        <div className="random-fact-panel">
+        <div
+          className="random-fact-panel"
+          onClick={(event) => event.stopPropagation()}
+        >
           <button
             type="button"
             onClick={closeRandomFact}

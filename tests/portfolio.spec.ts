@@ -90,9 +90,13 @@ test("mobile index dialog opens, navigates and closes", async ({ page }) => {
   await expect(page.locator("#contact")).toBeInViewport();
 });
 
-test("keyboard users can skip to the main content", async ({ page }) => {
+test("keyboard users can skip to the main content", async ({ page, browserName }) => {
   await page.goto("/");
-  await page.keyboard.press("Tab");
+  if (browserName === "webkit") {
+    await page.keyboard.press("Alt+Tab");
+  } else {
+    await page.keyboard.press("Tab");
+  }
 
   const skip = page.getByRole("link", { name: "Skip to content" });
   await expect(skip).toBeFocused();
@@ -113,7 +117,7 @@ test("contact exposes icon links without raw handles", async ({ page }) => {
   ).toHaveAttribute("href", "https://www.linkedin.com/in/aaron-paul-762248328/");
   await expect(
     contact.getByRole("link", { name: /Aaron Paul on Instagram/ }),
-  ).toHaveAttribute("href", "https://www.instagram.com/aaronpaul.xo/");
+  ).toHaveAttribute("href", "https://www.instagram.com/bud4pesttt/");
   await expect(
     contact.getByRole("link", { name: /Email Aaron Paul/ }),
   ).toHaveAttribute("href", "mailto:aaron4pole@gmail.com");

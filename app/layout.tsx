@@ -9,7 +9,7 @@ const mono = JetBrains_Mono({
   display: "swap",
 });
 
-const title = "Aaron Paul — Developer & Creative Technologist";
+const title = "Aaron Paul - Portfolio";
 const description =
   "Aaron Paul is a Computer Science and Business Systems student, developer and creative technologist building practical software across backend, data and real-time systems.";
 
