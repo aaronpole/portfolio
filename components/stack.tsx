@@ -25,7 +25,7 @@ const groups: Record<TechId, string> = {
 
 export function Stack() {
   return (
-    <section id="stack" className="scroll-mt-20 py-20 lg:py-28">
+    <section id="stack" className="scroll-mt-20 py-16 sm:py-20 lg:py-28">
       <div className="shell">
         <Reveal>
           <SectionHeading
@@ -56,12 +56,12 @@ export function Stack() {
               >
                 <div className="flex items-start justify-between">
                   <TechIcon id={id} className="tech-logo size-8 sm:size-9" />
-                  <span className="tech-index font-mono text-[0.6rem]">
+                  <span className="tech-index font-mono text-[0.66rem] lg:text-[0.6rem]">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
                 <div>
-                  <p className="eyebrow text-[0.52rem] text-ink-faint">
+                  <p className="eyebrow text-[0.66rem] text-ink-faint lg:text-[0.52rem]">
                     {groups[id]}
                   </p>
                   <p className="mt-1 font-display text-lg font-bold leading-none tracking-[-0.03em] sm:text-xl">

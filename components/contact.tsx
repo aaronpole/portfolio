@@ -42,7 +42,7 @@ export function Contact() {
   return (
     <section
       id="contact"
-      className="scroll-mt-20 border-t border-ink/15 bg-paper-deep/35 py-20 lg:py-28"
+      className="scroll-mt-20 border-t border-ink/15 bg-paper-deep/35 py-16 sm:py-20 lg:py-28"
     >
       <div className="shell">
         <div className="flex items-center gap-3">
@@ -60,8 +60,7 @@ export function Contact() {
 
           <Reveal className="lg:col-span-4 lg:col-start-9 lg:pt-3" delay={0.06}>
             <p className="text-base leading-7 text-ink-soft">
-              I&apos;m very open to internships, collaborations and good
-              conversations or maybe we can collab on a reel. text me on ig or hmu on my email. 
+              I&apos;m very open to internships, collaborations or maybe we can collab on a reel. text me on ig or hmu on my email. 
             </p>
             <p className="annotation mt-5">
               Based in Kochi, India · IST (UTC+5:30) · Usually replies within a

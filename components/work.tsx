@@ -6,7 +6,7 @@ import { SectionHeading } from "@/components/section-heading";
 
 export function Work() {
   return (
-    <section id="work" className="scroll-mt-20 py-20 lg:py-28">
+    <section id="work" className="scroll-mt-20 py-16 sm:py-20 lg:py-28">
       <div className="shell">
         <Reveal>
           <SectionHeading
@@ -36,7 +36,7 @@ export function Work() {
             href={links.github}
             target="_blank"
             rel="noreferrer"
-            className="group inline-flex items-center gap-2 border-b border-ink pb-1 text-sm transition-colors hover:border-accent hover:text-accent"
+            className="group inline-flex min-h-11 items-center gap-2 border-b border-ink pb-1 text-sm transition-colors hover:border-accent hover:text-accent lg:min-h-0"
           >
             More on GitHub
             <ArrowUpRight

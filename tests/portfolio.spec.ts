@@ -207,6 +207,71 @@ for (const width of [360, 768, 1440]) {
   });
 }
 
+for (const width of [360, 390]) {
+  test(`mobile schematic text stays legible at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+
+    const smallestRenderedFont = await page.evaluate(() => {
+      const sizes: number[] = [];
+
+      for (const svg of document.querySelectorAll<SVGSVGElement>(
+        ".plate-pastel svg",
+      )) {
+        if (!svg.getClientRects().length) continue;
+
+        const scale =
+          svg.getBoundingClientRect().width / (svg.viewBox.baseVal.width || 1);
+
+        for (const label of svg.querySelectorAll("text")) {
+          if (!label.getClientRects().length) continue;
+          sizes.push(
+            parseFloat(getComputedStyle(label).fontSize) * scale,
+          );
+        }
+      }
+
+      return sizes.length ? Math.min(...sizes) : 0;
+    });
+
+    // Effective on-screen size, not the untransformed SVG font size.
+    expect(smallestRenderedFont).toBeGreaterThanOrEqual(10.3);
+  });
+}
+
+test("mobile tap targets are at least 44px tall", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto("/");
+
+  const undersized = await page.evaluate(() => {
+    return [...document.querySelectorAll("a, button")]
+      .filter((element) => element.getClientRects().length > 0)
+      .filter((element) => !element.closest(".skip-link"))
+      .map((element) => {
+        const box = element.getBoundingClientRect();
+        return {
+          label: (
+            element.getAttribute("aria-label") ??
+            element.textContent ??
+            ""
+          )
+            .trim()
+            .slice(0, 40),
+          width: box.width,
+          height: box.height,
+        };
+      })
+      .filter(
+        (target) =>
+          target.width > 0 &&
+          target.height > 0 &&
+          (target.width < 40 || target.height < 44),
+      );
+  });
+
+  expect(undersized).toEqual([]);
+});
+
 test("reduced motion keeps content visible and stops marquee", async ({
   page,
 }) => {

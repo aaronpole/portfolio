@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Mail, Menu, X } from "lucide-react";
 import { emailHref, links, nav } from "@/lib/site";
+import { RandomFact } from "@/components/random-fact";
 import { SocialIcon } from "@/components/social-icon";
 
 export function SiteHeader() {
@@ -25,10 +26,10 @@ export function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-ink/15 bg-paper/85 backdrop-blur-md">
-        <div className="shell flex h-16 items-center justify-between gap-4">
+        <div className="site-header-inner shell flex h-16 items-center justify-between gap-4">
           <a
             href="#top"
-            className="group flex items-center gap-3"
+            className="group flex min-h-11 items-center gap-3 lg:min-h-0"
             aria-label="Aaron Paul — back to top"
           >
             <span
@@ -41,7 +42,7 @@ export function SiteHeader() {
               <span className="font-display text-lg font-bold leading-none tracking-[-0.03em]">
                 Aaron Paul
               </span>
-              <span className="eyebrow mt-1 text-[0.56rem] text-ink-faint">
+              <span className="site-brand-note eyebrow mt-1 text-[0.66rem] text-ink-faint lg:text-[0.56rem]">
                 Field notes / 2026
               </span>
             </span>
@@ -52,21 +53,15 @@ export function SiteHeader() {
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className="nav-pill eyebrow px-3 py-2 text-ink-soft"
+                className="nav-pill eyebrow inline-flex min-h-11 items-center px-3 py-2 text-ink-soft lg:min-h-0"
               >
                 {item.label}
               </a>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
-            <a
-              href="#contact"
-              className="chrome-pill hidden items-center gap-2 px-4 py-2.5 text-[0.65rem] font-mono uppercase tracking-[0.12em] text-ink md:inline-flex"
-            >
-              Say hello
-              <ArrowUpRight className="size-3.5" aria-hidden="true" />
-            </a>
+          <div className="site-header-actions flex items-center gap-2">
+            <RandomFact />
             <button
               type="button"
               onClick={() => setOpen(true)}
@@ -92,7 +87,7 @@ export function SiteHeader() {
           if (event.target === event.currentTarget) setOpen(false);
         }}
       >
-        <div className="shell flex h-full flex-col py-5">
+        <div className="shell flex h-full flex-col overflow-y-auto py-5">
           <div className="flex items-center justify-between border-b border-ink/15 pb-4">
             <p id="site-index-title" className="eyebrow text-ink-soft">
               Index — Aaron Paul
@@ -100,7 +95,7 @@ export function SiteHeader() {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="inline-flex items-center gap-2 border border-ink/20 px-3 py-2 text-[0.65rem] font-mono uppercase tracking-[0.12em] transition-colors hover:border-ink"
+              className="inline-flex min-h-11 items-center gap-2 border border-ink/20 px-3 py-2 text-[0.65rem] font-mono uppercase tracking-[0.12em] transition-colors hover:border-ink lg:min-h-0"
             >
               Close
               <X className="size-4" aria-hidden="true" />

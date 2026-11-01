@@ -122,7 +122,7 @@ export function Hero() {
                     className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_95%_at_50%_0%,transparent_58%,rgba(26,23,18,0.22))] mix-blend-multiply"
                   />
                 </div>
-                <span className="absolute right-4 top-4 border border-paper/50 bg-ink/45 px-2 py-1 text-[0.55rem] font-mono uppercase tracking-[0.16em] text-paper backdrop-blur-sm">
+                <span className="absolute right-4 top-4 border border-paper/50 bg-ink/45 px-2 py-1 text-[0.66rem] font-mono uppercase tracking-[0.16em] text-paper backdrop-blur-sm lg:text-[0.55rem]">
                   Plate 01
                 </span>
               </div>
@@ -130,7 +130,7 @@ export function Hero() {
 
             <div
               aria-hidden="true"
-              className="absolute -bottom-7 -left-4 z-20 grid size-24 place-items-center rounded-full border border-accent/40 bg-paper text-accent shadow-[0_10px_24px_-12px_rgba(26,23,18,0.45)] sm:-left-6 sm:size-28"
+              className="absolute -bottom-7 -left-2 z-20 grid size-24 place-items-center rounded-full border border-accent/40 bg-paper text-accent shadow-[0_10px_24px_-12px_rgba(26,23,18,0.45)] sm:-left-6 sm:size-28"
             >
               <svg viewBox="0 0 100 100" className="stamp-spin absolute inset-0 size-full">
                 <defs>
@@ -172,7 +172,7 @@ export function Hero() {
           <p className="annotation">A portfolio, not a résumé.</p>
           <a
             href="#about"
-            className="eyebrow inline-flex items-center gap-2 text-ink transition-colors hover:text-accent"
+            className="eyebrow inline-flex min-h-11 items-center gap-2 text-ink transition-colors hover:text-accent lg:min-h-0"
           >
             Read on
             <ArrowDown className="size-3.5" aria-hidden="true" />

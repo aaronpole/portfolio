@@ -6,7 +6,7 @@ import type { TechId } from "@/lib/tech";
 export const links = {
   github: "https://www.github.com/aaronpole",
   linkedin: "https://www.linkedin.com/in/aaron-paul-762248328/",
-  instagram: "https://www.instagram.com/aaronpaul.xo/",
+  instagram: "https://www.instagram.com/bud4pesttt/",
   email: "aaron4pole@gmail.com",
 } as const;
 

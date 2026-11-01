@@ -20,7 +20,7 @@ export function Footer() {
 
         <a
           href="#top"
-          className="eyebrow inline-flex items-center gap-2 text-ink transition-colors hover:text-accent"
+          className="eyebrow inline-flex min-h-11 items-center gap-2 text-ink transition-colors hover:text-accent lg:min-h-0"
         >
           Back to top
           <ArrowUp className="size-3.5" aria-hidden="true" />

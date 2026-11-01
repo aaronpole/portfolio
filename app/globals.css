@@ -33,6 +33,15 @@
   html {
     color-scheme: light;
     scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   body {
@@ -497,8 +506,302 @@
     background: rgba(26, 23, 18, 0.45);
   }
 
-  body:has(.index-dialog[open]) {
+  /* Random fact — trigger, centred flip card and dialog. */
+  .random-fact-trigger {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0.55rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-ink);
+  }
+
+  @media (min-width: 640px) {
+    .random-fact-trigger {
+      padding-inline: 1rem;
+      font-size: 0.65rem;
+    }
+  }
+
+  .random-fact-dialog {
+    width: min(calc(100vw - 2rem), 31rem);
+    max-width: 31rem;
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-ink);
+    overflow: visible;
+  }
+
+  .random-fact-dialog::backdrop {
+    background: rgba(26, 23, 18, 0.44);
+    -webkit-backdrop-filter: blur(5px) saturate(0.92);
+    backdrop-filter: blur(5px) saturate(0.92);
+  }
+
+  .random-fact-dialog[open] {
+    animation: fact-dialog-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .random-fact-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .random-fact-close {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    align-self: flex-end;
+    gap: 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--color-ink) 24%, transparent);
+    background: color-mix(in srgb, var(--color-paper-light) 92%, transparent);
+    padding: 0.45rem 0.8rem;
+    box-shadow: 2px 2px 0 rgba(26, 23, 18, 0.12);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: var(--color-ink);
+    transition:
+      background-color 200ms ease,
+      color 200ms ease,
+      border-color 200ms ease;
+  }
+
+  .random-fact-close:hover,
+  .random-fact-close:focus-visible {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+    color: var(--color-paper-light);
+  }
+
+  .fact-card {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    perspective: 1400px;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .fact-card-inner {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 560ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .fact-card[data-flipped="true"] .fact-card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .fact-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
     overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-ink) 26%, transparent);
+    border-radius: 1.35rem;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    background-color: var(--color-paper-light);
+    background-image:
+      linear-gradient(to right, rgba(26, 23, 18, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(26, 23, 18, 0.05) 1px, transparent 1px),
+      radial-gradient(120% 90% at 8% 4%, rgba(220, 210, 242, 0.72), transparent 62%),
+      radial-gradient(110% 86% at 100% 100%, rgba(246, 213, 202, 0.5), transparent 60%);
+    background-size:
+      32px 32px,
+      32px 32px,
+      auto,
+      auto;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      6px 7px 0 rgba(26, 23, 18, 0.1),
+      0 26px 55px -34px rgba(26, 23, 18, 0.75);
+    color: var(--color-ink);
+    visibility: visible;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transition: visibility 0s linear 0.26s;
+  }
+
+  .fact-face::after {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border: 1px solid color-mix(in srgb, var(--color-ink) 10%, transparent);
+    border-radius: 0.95rem;
+    pointer-events: none;
+  }
+
+  .fact-face-front {
+    justify-content: space-between;
+  }
+
+  .fact-front-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .fact-marker {
+    width: 0.6rem;
+    height: 0.6rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: var(--color-accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 14%, transparent);
+  }
+
+  .fact-number {
+    font-family: var(--font-display);
+    font-size: clamp(4.25rem, 13vw, 7.5rem);
+    font-weight: 800;
+    line-height: 0.8;
+    letter-spacing: -0.06em;
+    font-variant-numeric: tabular-nums;
+    transition: color 220ms ease;
+  }
+
+  .fact-face-back {
+    justify-content: space-between;
+    transform: rotateY(180deg);
+    background-image:
+      linear-gradient(to right, rgba(26, 23, 18, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(26, 23, 18, 0.05) 1px, transparent 1px),
+      radial-gradient(120% 90% at 92% 6%, rgba(207, 232, 218, 0.8), transparent 64%),
+      radial-gradient(110% 86% at 0% 100%, rgba(211, 228, 244, 0.6), transparent 60%);
+    background-size:
+      32px 32px,
+      32px 32px,
+      auto,
+      auto;
+    visibility: hidden;
+  }
+
+  .fact-card[data-flipped="true"] .fact-face-front {
+    visibility: hidden;
+  }
+
+  .fact-card[data-flipped="true"] .fact-face-back {
+    visibility: visible;
+    transition-delay: 0.26s;
+  }
+
+  .fact-back-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .fact-text {
+    display: block;
+    margin-block: auto;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 3vw, 1.9rem);
+    font-weight: 600;
+    line-height: 1.14;
+    letter-spacing: -0.025em;
+    text-wrap: pretty;
+  }
+
+  @media (hover: hover) {
+    .fact-card:hover .fact-face {
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        8px 9px 0 rgba(26, 23, 18, 0.12),
+        0 30px 60px -34px rgba(26, 23, 18, 0.8);
+    }
+
+    .fact-card:hover .fact-number {
+      color: var(--color-accent);
+    }
+  }
+
+  body:has(.index-dialog[open]),
+  body:has(.random-fact-dialog[open]) {
+    overflow: hidden;
+  }
+}
+
+/* Mobile & tablet ergonomics — desktop (1024px+) is intentionally untouched. */
+@media (max-width: 1023px) {
+  .tag {
+    font-size: 0.66rem;
+    padding-block: 0.45rem;
+  }
+
+  a.tag,
+  button.tag {
+    min-height: 2.75rem;
+  }
+
+  .sticker {
+    font-size: 0.66rem;
+  }
+
+  .section-number {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0.68rem;
+  }
+
+  .chrome-pill {
+    min-height: 2.75rem;
+  }
+}
+
+/* Very narrow phones: keep the header on one line beside the new trigger. */
+@media (max-width: 379px) {
+  .site-header-inner {
+    gap: 0.5rem;
+  }
+
+  .site-header-actions {
+    gap: 0.375rem;
+  }
+
+  .site-brand-note {
+    display: none;
+  }
+
+  .random-fact-trigger {
+    padding-inline: 0.55rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+  }
+}
+
+@keyframes fact-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -631,6 +934,16 @@
   }
 
   .link-sweep {
+    transition: none;
+  }
+
+  .random-fact-dialog[open] {
+    animation: none;
+  }
+
+  .fact-card-inner,
+  .fact-face,
+  .fact-card[data-flipped="true"] .fact-face-back {
     transition: none;
   }
 }

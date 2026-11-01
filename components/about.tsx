@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components/section-heading";
 
 export function About() {
   return (
-    <section id="about" className="scroll-mt-20 py-20 lg:py-28">
+    <section id="about" className="scroll-mt-20 py-16 sm:py-20 lg:py-28">
       <div className="shell">
         <Reveal>
           <SectionHeading
@@ -17,7 +17,7 @@ export function About() {
                 <em className="italic text-accent">everything</em>, on purpose.
               </>
             }
-            note="Dabbling across disciplines, with Leonardo as the reference point."
+            note="Dabbling across disciplines, with Da Vinci as the reference point."
           />
         </Reveal>
 
@@ -67,16 +67,16 @@ export function About() {
                 aria-hidden="true"
                 className="absolute -top-2 right-10 z-20 h-5 w-16 rotate-2 border border-[#c9b892]/70 bg-[#e8dab8]/85 shadow-[0_1px_2px_rgba(26,23,18,0.16)]"
               />
-              <span className="sticker absolute -right-3 -top-4 z-30">
+              <span className="sticker absolute -right-3 -top-7 z-30 lg:-top-4">
                 Polymath
               </span>
 
               <div className="vitruvian-frame relative rounded-[4px] border border-ink/25 p-2.5 sm:p-3">
                 <div className="flex items-center justify-between border-b border-ink/20 px-1 pb-2">
-                  <span className="eyebrow text-[0.55rem] text-ink-soft">
+                  <span className="eyebrow text-[0.66rem] lg:text-[0.55rem] text-ink-soft">
                     Plate 02
                   </span>
-                  <span className="eyebrow text-[0.55rem] text-ink-faint">
+                  <span className="eyebrow text-[0.66rem] lg:text-[0.55rem] text-ink-faint">
                     Notebook leaf
                   </span>
                 </div>
@@ -138,12 +138,12 @@ export function About() {
                 </div>
 
                 <div className="mt-2.5 flex items-start justify-between gap-3 border-t border-ink/20 px-1 pt-2">
-                  <p className="annotation text-[0.55rem] leading-4">
+                  <p className="annotation text-[0.66rem] lg:text-[0.55rem] leading-4">
                     Leonardo da Vinci, <em>Vitruvian Man</em>, c. 1490.
                     <br />
                     Pen, ink &amp; metalpoint. Public domain.
                   </p>
-                  <p className="annotation shrink-0 text-[0.55rem]">Fig. II</p>
+                  <p className="annotation shrink-0 text-[0.66rem] lg:text-[0.55rem]">Fig. II</p>
                 </div>
               </div>
 

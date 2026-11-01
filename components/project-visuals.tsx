@@ -427,12 +427,13 @@ function MotherjaneVisual() {
 function SeaterCompact() {
   const cols = 6;
   const rows = 3;
-  const seatW = 74;
-  const seatH = 44;
-  const gap = 14;
-  const startX = 63;
-  const startY = 184;
-  const occupied = new Set([0, 2, 4, 7, 9, 12, 15]);
+  const seatW = 44;
+  const seatH = 38;
+  const gapX = 6;
+  const gapY = 8;
+  const startX = 23;
+  const startY = 148;
+  const occupied = new Set([0, 2, 4, 7, 9, 12, 14, 16]);
   const target = { row: 1, col: 2 };
 
   const seats = Array.from({ length: rows * cols }, (_, index) => {
@@ -440,34 +441,38 @@ function SeaterCompact() {
     const col = index % cols;
     return {
       index,
-      x: startX + col * (seatW + gap),
-      y: startY + row * (seatH + gap),
+      x: startX + col * (seatW + gapX),
+      y: startY + row * (seatH + gapY),
       isTarget: row === target.row && col === target.col,
       isOccupied: occupied.has(index),
     };
   });
 
   return (
-    <svg viewBox="0 0 640 400" aria-hidden="true" focusable="false">
-      <text x="32" y="52" fontFamily={display} fontSize="34" fill="var(--color-ink)">
+    <svg viewBox="0 0 340 352" aria-hidden="true" focusable="false">
+      <text x="20" y="36" fontFamily={display} fontSize="26" fill="var(--color-ink)">
         Find your seat.
       </text>
-      <text x="608" y="48" textAnchor="end" fontFamily={mono} fontSize="13" letterSpacing="1.4" fill="var(--color-accent)">
+      <text x="320" y="33" textAnchor="end" fontFamily={mono} fontSize="12" letterSpacing="1" fill="var(--color-accent)">
         EXAM HALL C
       </text>
-      <text x="32" y="74" fontFamily={mono} fontSize="11" letterSpacing="1.2" fill="var(--color-ink-faint)">
+      <text x="20" y="58" fontFamily={mono} fontSize="12" letterSpacing="1" fill="var(--color-ink-faint)">
         MEC / SEATING LOOKUP
       </text>
 
-      <rect x="32" y="90" width="576" height="58" fill="none" stroke="var(--color-ink)" strokeOpacity="0.4" />
-      <text x="52" y="127" fontFamily={mono} fontSize="23" letterSpacing="1" fill="var(--color-ink)">
+      <rect x="20" y="70" width="300" height="46" fill="none" stroke="var(--color-ink)" strokeOpacity="0.4" />
+      <text x="34" y="99" fontFamily={mono} fontSize="22" letterSpacing="1" fill="var(--color-ink)">
         21CS1042
       </text>
-      <circle cx="570" cy="119" r="9" fill="none" stroke="var(--color-ink)" strokeOpacity="0.55" />
-      <line x1="577" y1="126" x2="585" y2="134" stroke="var(--color-ink)" strokeOpacity="0.55" strokeWidth="1.6" />
+      <circle cx="296" cy="93" r="8" fill="none" stroke="var(--color-ink)" strokeOpacity="0.55" />
+      <line x1="302" y1="99" x2="309" y2="106" stroke="var(--color-ink)" strokeOpacity="0.55" strokeWidth="1.4" />
 
-      <line x1="320" y1="154" x2="320" y2="170" stroke="var(--color-accent)" strokeWidth="1.5" />
-      <path d="M314 166 L320 173 L326 166" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" />
+      <line x1="170" y1="122" x2="170" y2="134" stroke="var(--color-accent)" strokeWidth="1.5" />
+      <path d="M164 130 L170 137 L176 130" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" />
+
+      <text x="20" y="142" fontFamily={mono} fontSize="12" letterSpacing="1.2" fill="var(--color-ink-faint)">
+        FRONT
+      </text>
 
       {seats.map((seat) => (
         <g key={seat.index}>
@@ -484,10 +489,10 @@ function SeaterCompact() {
           {seat.isTarget ? (
             <text
               x={seat.x + seatW / 2}
-              y={seat.y + seatH / 2 + 6}
+              y={seat.y + seatH / 2 + 5}
               textAnchor="middle"
               fontFamily={mono}
-              fontSize="18"
+              fontSize="14"
               fill="var(--color-paper-light)"
             >
               C-02
@@ -501,19 +506,19 @@ function SeaterCompact() {
 
       <circle
         className="seat-pulse"
-        cx={startX + target.col * (seatW + gap) + seatW / 2}
-        cy={startY + target.row * (seatH + gap) + seatH / 2}
-        r="44"
+        cx={startX + target.col * (seatW + gapX) + seatW / 2}
+        cy={startY + target.row * (seatH + gapY) + seatH / 2}
+        r="26"
         fill="none"
         stroke="var(--color-accent)"
         strokeWidth="1.2"
       />
 
-      <line x1="32" y1="366" x2="608" y2="366" stroke="var(--color-ink)" strokeOpacity="0.18" />
-      <text x="32" y="390" fontFamily={mono} fontSize="16" letterSpacing="1.2" fill="var(--color-ink-soft)">
+      <line x1="20" y1="310" x2="320" y2="310" stroke="var(--color-ink)" strokeOpacity="0.18" />
+      <text x="20" y="332" fontFamily={mono} fontSize="13" letterSpacing="1" fill="var(--color-ink-soft)">
         QUERY → SEAT
       </text>
-      <text x="608" y="390" textAnchor="end" fontFamily={mono} fontSize="16" letterSpacing="1.2" fill="var(--color-ink-faint)">
+      <text x="320" y="332" textAnchor="end" fontFamily={mono} fontSize="13" letterSpacing="1" fill="var(--color-ink-faint)">
         NO NOTICE BOARD
       </text>
     </svg>
@@ -521,10 +526,10 @@ function SeaterCompact() {
 }
 
 function MafiaCompact() {
-  const centerX = 320;
-  const centerY = 214;
-  const rx = 202;
-  const ry = 122;
+  const centerX = 170;
+  const centerY = 196;
+  const rx = 118;
+  const ry = 92;
   const mafiaSeats = new Set([1, 7, 12]);
   const detectiveSeat = 4;
   const doctorSeat = 9;
@@ -542,18 +547,21 @@ function MafiaCompact() {
   });
 
   return (
-    <svg viewBox="0 0 640 400" aria-hidden="true" focusable="false">
-      <text x="32" y="52" fontFamily={display} fontSize="36" fill="var(--color-ink)">
+    <svg viewBox="0 0 340 364" aria-hidden="true" focusable="false">
+      <text x="20" y="38" fontFamily={display} fontSize="28" fill="var(--color-ink)">
         Mafia.
       </text>
-      <text x="608" y="48" textAnchor="end" fontFamily={mono} fontSize="14" letterSpacing="1.4" fill="var(--color-accent)">
+      <text x="320" y="34" textAnchor="end" fontFamily={mono} fontSize="12" letterSpacing="1" fill="var(--color-accent)">
         16 PLAYERS
       </text>
-      <text x="32" y="74" fontFamily={mono} fontSize="11" letterSpacing="1.2" fill="var(--color-ink-faint)">
+      <text x="20" y="58" fontFamily={mono} fontSize="12" letterSpacing="1" fill="var(--color-ink-faint)">
         REAL-TIME · SOCIAL DEDUCTION
       </text>
+      <text x="320" y="58" textAnchor="end" fontFamily={mono} fontSize="12" letterSpacing="1" fill="var(--color-accent)">
+        LIVE
+      </text>
 
-      <ellipse cx={centerX} cy={centerY} rx={rx + 20} ry={ry + 20} fill="none" stroke="var(--color-ink)" strokeOpacity="0.16" strokeDasharray="2 7" />
+      <ellipse cx={centerX} cy={centerY} rx={rx + 14} ry={ry + 14} fill="none" stroke="var(--color-ink)" strokeOpacity="0.16" strokeDasharray="2 7" />
 
       {seats
         .filter((seat) => seat.isMafia || seat.isDetective || seat.isDoctor)
@@ -572,14 +580,14 @@ function MafiaCompact() {
           />
         ))}
 
-      <ellipse cx={centerX} cy={centerY} rx="146" ry="86" fill="var(--color-paper-deep)" fillOpacity="0.55" stroke="var(--color-ink)" strokeOpacity="0.3" />
-      <text x={centerX} y="188" textAnchor="middle" fontFamily={mono} fontSize="13" letterSpacing="3" fill="var(--color-ink-faint)">
+      <ellipse cx={centerX} cy={centerY} rx="86" ry="62" fill="var(--color-paper-deep)" fillOpacity="0.55" stroke="var(--color-ink)" strokeOpacity="0.3" />
+      <text x={centerX} y="174" textAnchor="middle" fontFamily={mono} fontSize="12" letterSpacing="2.4" fill="var(--color-ink-faint)">
         NIGHT 02
       </text>
-      <text x={centerX} y="234" textAnchor="middle" fontFamily={mono} fontSize="48" letterSpacing="2" fill="var(--color-ink)">
+      <text x={centerX} y="214" textAnchor="middle" fontFamily={mono} fontSize="34" letterSpacing="1.5" fill="var(--color-ink)">
         02:14
       </text>
-      <text x={centerX} y="256" textAnchor="middle" fontFamily={mono} fontSize="12" letterSpacing="2.4" fill="var(--color-accent)">
+      <text x={centerX} y="236" textAnchor="middle" fontFamily={mono} fontSize="12.5" letterSpacing="2" fill="var(--color-accent)">
         DISCUSSION
       </text>
 
@@ -588,7 +596,7 @@ function MafiaCompact() {
           key={seat.index}
           cx={seat.x}
           cy={seat.y}
-          r={seat.isMafia ? 18 : seat.isDetective || seat.isDoctor ? 16 : 12}
+          r={seat.isMafia ? 13 : seat.isDetective || seat.isDoctor ? 11 : 9}
           fill={seat.isMafia ? "var(--color-accent)" : seat.isDetective ? "var(--color-pencil)" : seat.isDoctor ? "var(--color-stamp)" : "var(--color-paper)"}
           fillOpacity={0.95}
           stroke="var(--color-ink)"
@@ -597,18 +605,15 @@ function MafiaCompact() {
         />
       ))}
 
-      <line x1="32" y1="360" x2="608" y2="360" stroke="var(--color-ink)" strokeOpacity="0.18" />
-      <g fontFamily={mono} fontSize="16" letterSpacing="1" fill="var(--color-ink-soft)">
-        <circle cx="40" cy="382" r="6" fill="var(--color-accent)" />
-        <text x="54" y="388">MAFIA ×3</text>
-        <circle cx="196" cy="382" r="6" fill="var(--color-pencil)" />
-        <text x="210" y="388">DETECTIVE</text>
-        <circle cx="364" cy="382" r="6" fill="var(--color-stamp)" />
-        <text x="378" y="388">DOCTOR</text>
+      <line x1="20" y1="322" x2="320" y2="322" stroke="var(--color-ink)" strokeOpacity="0.18" />
+      <g fontFamily={mono} fontSize="12" letterSpacing="0.8" fill="var(--color-ink-soft)">
+        <circle cx="22" cy="344" r="5" fill="var(--color-accent)" />
+        <text x="32" y="348">MAFIA ×3</text>
+        <circle cx="116" cy="344" r="5" fill="var(--color-pencil)" />
+        <text x="126" y="348">DETECTIVE</text>
+        <circle cx="222" cy="344" r="5" fill="var(--color-stamp)" />
+        <text x="232" y="348">DOCTOR</text>
       </g>
-      <text x="608" y="388" textAnchor="end" fontFamily={mono} fontSize="16" letterSpacing="1" fill="var(--color-accent)">
-        LIVE
-      </text>
     </svg>
   );
 }
@@ -619,48 +624,48 @@ function MotherjaneCompact() {
     { label: "LEX B", value: "0.48" },
     { label: "LEX C", value: "0.63" },
   ];
-  const bars = [28, 46, 38, 66, 52, 80, 62, 44];
+  const bars = [26, 44, 36, 62, 50, 74, 58, 42];
 
   return (
-    <svg viewBox="0 0 640 400" aria-hidden="true" focusable="false">
-      <text x="32" y="52" fontFamily={display} fontSize="34" fill="var(--color-ink)">
+    <svg viewBox="0 0 340 372" aria-hidden="true" focusable="false">
+      <text x="20" y="38" fontFamily={display} fontSize="26" fill="var(--color-ink)">
         Text → signal.
       </text>
-      <text x="608" y="48" textAnchor="end" fontFamily={mono} fontSize="13" letterSpacing="1.4" fill="var(--color-accent)">
+      <text x="320" y="34" textAnchor="end" fontFamily={mono} fontSize="12" letterSpacing="1" fill="var(--color-accent)">
         R PACKAGE
       </text>
-      <text x="32" y="74" fontFamily={mono} fontSize="11" letterSpacing="1.2" fill="var(--color-ink-faint)">
+      <text x="20" y="58" fontFamily={mono} fontSize="12" letterSpacing="1" fill="var(--color-ink-faint)">
         motherjane / MULTI-LEXICON SCORING
       </text>
 
       {scores.map((score, index) => {
-        const y = 116 + index * 46;
+        const y = 96 + index * 38;
         return (
           <g key={score.label}>
-            <text x="32" y={y + 5} fontFamily={mono} fontSize="16" letterSpacing="1.2" fill="var(--color-ink-soft)">
+            <text x="20" y={y + 4} fontFamily={mono} fontSize="13" letterSpacing="0.8" fill="var(--color-ink-soft)">
               {score.label}
             </text>
-            <rect x="132" y={y - 5} width="310" height="10" fill="var(--color-ink)" fillOpacity="0.12" />
+            <rect x="76" y={y - 5} width="196" height="9" fill="var(--color-ink)" fillOpacity="0.12" />
             <rect
-              x="132"
+              x="76"
               y={y - 5}
-              width={310 * Number(score.value)}
-              height="10"
+              width={196 * Number(score.value)}
+              height="9"
               fill={index === 1 ? "var(--color-pencil)" : "var(--color-accent)"}
             />
-            <text x="466" y={y + 6} fontFamily={mono} fontSize="17" fill="var(--color-ink)">
+            <text x="320" y={y + 5} textAnchor="end" fontFamily={mono} fontSize="14" fill="var(--color-ink)">
               {score.value}
             </text>
           </g>
         );
       })}
 
-      <line x1="32" y1="256" x2="608" y2="256" stroke="var(--color-ink)" strokeOpacity="0.18" />
+      <line x1="20" y1="204" x2="320" y2="204" stroke="var(--color-ink)" strokeOpacity="0.18" />
 
-      <text x="32" y="318" fontFamily={display} fontSize="58" fill="var(--color-ink)">
+      <text x="20" y="262" fontFamily={display} fontSize="44" fill="var(--color-ink)">
         +0.42
       </text>
-      <text x="32" y="338" fontFamily={mono} fontSize="12" letterSpacing="1.2" fill="var(--color-accent)">
+      <text x="20" y="290" fontFamily={mono} fontSize="12" letterSpacing="0.8" fill="var(--color-accent)">
         AGGREGATE / POSITIVE
       </text>
 
@@ -668,22 +673,22 @@ function MotherjaneCompact() {
         <rect
           key={`${height}-${index}`}
           className="bar-pulse"
-          x={388 + index * 28}
-          y={316 - height}
-          width="18"
+          x={203 + index * 15}
+          y={286 - height}
+          width="12"
           height={height}
           fill={index === 5 ? "var(--color-accent)" : "var(--color-ink)"}
           fillOpacity={index === 5 ? 0.9 : 0.22 + index * 0.04}
           style={{ animationDelay: `${index * 0.16}s` }}
         />
       ))}
-      <line x1="388" y1="316" x2="608" y2="316" stroke="var(--color-ink)" strokeOpacity="0.35" />
+      <line x1="203" y1="286" x2="320" y2="286" stroke="var(--color-ink)" strokeOpacity="0.35" />
 
-      <line x1="32" y1="360" x2="608" y2="360" stroke="var(--color-ink)" strokeOpacity="0.18" />
-      <text x="32" y="388" fontFamily={mono} fontSize="15" letterSpacing="1.2" fill="var(--color-ink-soft)">
+      <line x1="20" y1="330" x2="320" y2="330" stroke="var(--color-ink)" strokeOpacity="0.18" />
+      <text x="20" y="352" fontFamily={mono} fontSize="12" letterSpacing="0.8" fill="var(--color-ink-soft)">
         TEXT → SCORE → SIGNAL
       </text>
-      <text x="608" y="388" textAnchor="end" fontFamily={mono} fontSize="15" letterSpacing="1.2" fill="var(--color-ink-faint)">
+      <text x="320" y="352" textAnchor="end" fontFamily={mono} fontSize="12" letterSpacing="0.8" fill="var(--color-ink-faint)">
         NUMERIC-AWARE
       </text>
     </svg>
@@ -703,20 +708,20 @@ export function ProjectVisual({
     <figure>
       <div className="plate-pastel" data-tint={visual}>
         <div className="flex items-center justify-between border-b border-ink/15 bg-paper-light/45 px-4 py-2.5">
-          <span className="tag bg-paper-light/70 text-[0.52rem]">
+          <span className="tag bg-paper-light/70 text-[0.66rem] lg:text-[0.52rem]">
             Plate {plate}
           </span>
-          <span className="tag bg-paper-light/70 text-[0.52rem]">
+          <span className="tag bg-paper-light/70 text-[0.66rem] lg:text-[0.52rem]">
             Schematic
           </span>
         </div>
         <div className="p-3 sm:p-5">
-          <div className="sm:hidden">
+          <div className="mx-auto w-full max-w-[32rem] lg:hidden">
             {visual === "seater" ? <SeaterCompact /> : null}
             {visual === "mafia" ? <MafiaCompact /> : null}
             {visual === "motherjane" ? <MotherjaneCompact /> : null}
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden lg:block">
             {visual === "seater" ? <SeaterVisual /> : null}
             {visual === "mafia" ? <MafiaVisual /> : null}
             {visual === "motherjane" ? <MotherjaneVisual /> : null}
