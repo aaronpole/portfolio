@@ -25,6 +25,8 @@ export function RandomFact() {
   const lastIndexRef = useRef<number | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const ignoreClickAfterTouchRef = useRef(false);
+  const touchResetTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setPortalReady(true);
@@ -42,6 +44,41 @@ export function RandomFact() {
     setFlipped(false);
     setOpen(true);
   }, []);
+
+  // iOS Safari can retain the visual pressed/hover state after a tap. Handle
+  // touchend explicitly, then ignore the synthetic click generated for that
+  // same tap so the card opens once and selects only one fact.
+  const handleTouchEnd = useCallback(
+    (event: React.TouchEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      ignoreClickAfterTouchRef.current = true;
+
+      if (touchResetTimerRef.current !== null) {
+        window.clearTimeout(touchResetTimerRef.current);
+      }
+
+      openRandomFact();
+
+      touchResetTimerRef.current = window.setTimeout(() => {
+        ignoreClickAfterTouchRef.current = false;
+        touchResetTimerRef.current = null;
+      }, 800);
+    },
+    [openRandomFact],
+  );
+
+  const handleClick = useCallback(() => {
+    if (ignoreClickAfterTouchRef.current) {
+      ignoreClickAfterTouchRef.current = false;
+      if (touchResetTimerRef.current !== null) {
+        window.clearTimeout(touchResetTimerRef.current);
+        touchResetTimerRef.current = null;
+      }
+      return;
+    }
+
+    openRandomFact();
+  }, [openRandomFact]);
 
   // Use a regular React overlay rather than the native <dialog> element.
   // This avoids iOS Safari's inconsistent native-dialog hit testing while
@@ -102,7 +139,8 @@ export function RandomFact() {
       <button
         ref={triggerRef}
         type="button"
-        onClick={openRandomFact}
+        onTouchEnd={handleTouchEnd}
+        onClick={handleClick}
         aria-haspopup="dialog"
         aria-controls="random-fact-dialog"
         className="random-fact-trigger chrome-pill"
