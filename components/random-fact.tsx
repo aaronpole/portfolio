@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { facts } from "@/lib/facts";
 
@@ -18,30 +19,36 @@ function pickFactIndex(previous: number | null) {
 
 export function RandomFact() {
   const [open, setOpen] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
   const [factIndex, setFactIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const lastIndexRef = useRef<number | null>(null);
 
+  // Mount the dialog in document.body, outside the sticky, backdrop-filtered
+  // header. This avoids mobile Safari/WebKit rendering and hit-testing issues
+  // caused by placing a modal dialog inside that transformed/filtered subtree.
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
+
   // React state is the single source of truth for the native dialog lifecycle.
-  // Do not call showModal() in the trigger handler as well as in this effect:
-  // keeping the imperative API in one place avoids duplicate open attempts.
+  // The effect also waits for the portal to mount before opening the dialog.
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!dialog || !portalReady) return;
 
     if (open && !dialog.open) {
       try {
         dialog.showModal();
       } catch (error) {
-        // Keep the UI state recoverable if a browser rejects the native dialog.
         console.error("Unable to open the random fact dialog:", error);
         setOpen(false);
       }
     } else if (!open && dialog.open) {
       dialog.close();
     }
-  }, [open]);
+  }, [open, portalReady]);
 
   // Lock background scrolling while open, restore the previous value on close.
   useEffect(() => {
@@ -83,83 +90,93 @@ export function RandomFact() {
         Random fact
       </button>
 
-      <dialog
-        id="random-fact-dialog"
-        ref={dialogRef}
-        className="random-fact-dialog"
-        aria-labelledby="random-fact-title"
-        onCancel={() => {
-          // Allow the browser's native dialog cancellation (Escape) to proceed.
-          closeRandomFact();
-        }}
-        onClose={() => {
-          // Synchronise React if the browser closes the dialog natively.
-          setOpen(false);
-          setFlipped(false);
-        }}
-        onClick={(event) => {
-          // A click on the dialog element itself is a backdrop click.
-          // Clicks inside the panel/card have a different target and stay open.
-          if (event.target === event.currentTarget) {
-            closeRandomFact();
-          }
-        }}
-      >
-        <h2 id="random-fact-title" className="sr-only">
-          Random fact
-        </h2>
-
-        <div className="random-fact-panel">
-          <button
-            type="button"
-            onClick={closeRandomFact}
-            aria-label="Close random fact"
-            className="random-fact-close"
+      {portalReady &&
+        createPortal(
+          <dialog
+            id="random-fact-dialog"
+            ref={dialogRef}
+            className="random-fact-dialog"
+            aria-labelledby="random-fact-title"
+            onCancel={() => {
+              // The browser handles native Escape cancellation and dismissal.
+              closeRandomFact();
+            }}
+            onClose={() => {
+              // Keep React state in sync with native dialog dismissal.
+              setOpen(false);
+              setFlipped(false);
+            }}
+            onClick={(event) => {
+              // The dialog element itself is the backdrop; clicks within the
+              // panel/card have a child target and therefore stay open.
+              if (event.target === event.currentTarget) {
+                closeRandomFact();
+              }
+            }}
           >
-            Close
-            <X className="size-4" aria-hidden="true" />
-          </button>
+            <h2 id="random-fact-title" className="sr-only">
+              Random fact
+            </h2>
 
-          <button
-            type="button"
-            onClick={() => setFlipped((current) => !current)}
-            aria-label={
-              flipped ? `Random fact ${number}: ${fact}` : "Reveal random fact"
-            }
-            className="fact-card"
-            data-flipped={flipped}
-          >
-            <span className="fact-card-inner">
-              <span
-                className="fact-face fact-face-front"
-                data-fact-face="front"
-                aria-hidden={flipped}
+            <div className="random-fact-panel">
+              <button
+                type="button"
+                onClick={closeRandomFact}
+                aria-label="Close random fact"
+                className="random-fact-close"
               >
-                <span className="fact-front-meta">
-                  <span className="eyebrow text-ink-soft">Random fact</span>
-                  <span className="fact-marker" aria-hidden="true" />
-                </span>
-                <span className="fact-number">#{number}</span>
-              </span>
+                Close
+                <X className="size-4" aria-hidden="true" />
+              </button>
 
-              <span
-                className="fact-face fact-face-back"
-                data-fact-face="back"
-                data-fact-index={factIndex + 1}
-                aria-hidden={!flipped}
+              <button
+                type="button"
+                onClick={() => setFlipped((current) => !current)}
+                aria-label={
+                  flipped
+                    ? `Random fact ${number}: ${fact}`
+                    : "Reveal random fact"
+                }
+                className="fact-card"
+                data-flipped={flipped}
               >
-                <span className="fact-back-meta">
-                  <span className="eyebrow text-accent">#{number}</span>
-                  <span className="eyebrow text-ink-faint">Random fact</span>
+                <span className="fact-card-inner">
+                  <span
+                    className="fact-face fact-face-front"
+                    data-fact-face="front"
+                    aria-hidden={flipped}
+                  >
+                    <span className="fact-front-meta">
+                      <span className="eyebrow text-ink-soft">
+                        Random fact
+                      </span>
+                      <span className="fact-marker" aria-hidden="true" />
+                    </span>
+                    <span className="fact-number">#{number}</span>
+                  </span>
+
+                  <span
+                    className="fact-face fact-face-back"
+                    data-fact-face="back"
+                    data-fact-index={factIndex + 1}
+                    aria-hidden={!flipped}
+                  >
+                    <span className="fact-back-meta">
+                      <span className="eyebrow text-accent">#{number}</span>
+                      <span className="eyebrow text-ink-faint">
+                        Random fact
+                      </span>
+                    </span>
+                    <span className="fact-text" data-fact-text>
+                      {fact}
+                    </span>
+                  </span>
                 </span>
-                <span className="fact-text" data-fact-text>
-                  {fact}
-                </span>
-              </span>
-            </span>
-          </button>
-        </div>
-      </dialog>
+              </button>
+            </div>
+          </dialog>,
+          document.body,
+        )}
     </>
   );
 }
