@@ -70,6 +70,22 @@ for (const { width, height } of viewports) {
       await expect(page.locator("#contact")).toBeInViewport();
     });
 
+    test("opens from a real touch tap on iPhone WebKit", async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "mobile-webkit" || width !== 390);
+
+      await page.goto("/");
+      const trigger = page.getByRole("button", triggerName);
+      const bounds = await trigger.boundingBox();
+      expect(bounds).not.toBeNull();
+
+      await page.touchscreen.tap(
+        bounds!.x + bounds!.width / 2,
+        bounds!.y + bounds!.height / 2,
+      );
+
+      await expect(dialogFor(page)).toBeVisible();
+    });
+
     test("opens a centred card over a dimmed backdrop", async ({ page }) => {
       await page.goto("/");
       const dialog = await openRandomFact(page);
