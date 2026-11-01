@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { facts } from "@/lib/facts";
@@ -25,14 +25,14 @@ export function RandomFact() {
   const lastIndexRef = useRef<number | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const ignoreClickAfterTouchRef = useRef(false);
-  const touchResetTimerRef = useRef<number | null>(null);
+  const ignoreClickAfterPointerRef = useRef(false);
+  const pointerResetTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setPortalReady(true);
     return () => {
-      if (touchResetTimerRef.current !== null) {
-        window.clearTimeout(touchResetTimerRef.current);
+      if (pointerResetTimerRef.current !== null) {
+        window.clearTimeout(pointerResetTimerRef.current);
       }
     };
   }, []);
@@ -50,35 +50,36 @@ export function RandomFact() {
     setOpen(true);
   }, []);
 
-  // iOS Safari can retain the visual pressed/hover state after a tap. Handle
-  // touchend explicitly, then ignore the synthetic click generated for that
-  // same tap so the card opens once and selects only one fact.
-  const handleTouchEnd = useCallback(
-    (event: TouchEvent<HTMLButtonElement>) => {
+  // Handle touch/pen pointer activation explicitly, then suppress the
+  // synthetic click generated for the same pointer interaction. Mouse and
+  // keyboard activation continue through onClick.
+  const handlePointerUp = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      if (event.pointerType === "mouse") return;
       event.preventDefault();
-      ignoreClickAfterTouchRef.current = true;
+      ignoreClickAfterPointerRef.current = true;
 
-      if (touchResetTimerRef.current !== null) {
-        window.clearTimeout(touchResetTimerRef.current);
+      if (pointerResetTimerRef.current !== null) {
+        window.clearTimeout(pointerResetTimerRef.current);
       }
 
       openRandomFact();
       event.currentTarget.blur();
 
-      touchResetTimerRef.current = window.setTimeout(() => {
-        ignoreClickAfterTouchRef.current = false;
-        touchResetTimerRef.current = null;
+      pointerResetTimerRef.current = window.setTimeout(() => {
+        ignoreClickAfterPointerRef.current = false;
+        pointerResetTimerRef.current = null;
       }, 800);
     },
     [openRandomFact],
   );
 
   const handleClick = useCallback(() => {
-    if (ignoreClickAfterTouchRef.current) {
-      ignoreClickAfterTouchRef.current = false;
-      if (touchResetTimerRef.current !== null) {
-        window.clearTimeout(touchResetTimerRef.current);
-        touchResetTimerRef.current = null;
+    if (ignoreClickAfterPointerRef.current) {
+      ignoreClickAfterPointerRef.current = false;
+      if (pointerResetTimerRef.current !== null) {
+        window.clearTimeout(pointerResetTimerRef.current);
+        pointerResetTimerRef.current = null;
       }
       return;
     }
@@ -145,7 +146,7 @@ export function RandomFact() {
       <button
         ref={triggerRef}
         type="button"
-        onTouchEnd={handleTouchEnd}
+        onPointerUp={handlePointerUp}
         onClick={handleClick}
         aria-haspopup="dialog"
         aria-controls="random-fact-dialog"
