@@ -111,29 +111,6 @@ export function SiteHeader() {
     };
   }, [open, closeIndex]);
 
-  // Lock background scrolling while open, restore on close
-  useEffect(() => {
-    if (open) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }
-  }, [open]);
-
-  // Escape key handler
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeIndex();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, closeIndex]);
-
   const handleNavClick = (id: string) => {
     closeIndex();
     const target = document.getElementById(id);
