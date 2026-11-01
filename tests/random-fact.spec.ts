@@ -101,11 +101,11 @@ for (const { width, height } of viewports) {
       expect(Math.abs(centreX - width / 2)).toBeLessThan(3);
       expect(Math.abs(centreY - height / 2)).toBeLessThan(3);
 
-      const backdrop = await dialog.evaluate((element) => {
-        const style = getComputedStyle(element, "::backdrop");
+      const backdrop = await page.locator("[data-random-fact-backdrop]").evaluate((element) => {
+        const style = getComputedStyle(element);
         return {
           background: style.backgroundColor,
-          filter: style.backdropFilter,
+          filter: style.backdropFilter || style.webkitBackdropFilter,
         };
       });
       expect(backdrop.background).not.toBe("rgba(0, 0, 0, 0)");
