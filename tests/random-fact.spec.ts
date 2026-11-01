@@ -121,7 +121,9 @@ for (const { width, height } of viewports) {
         const style = getComputedStyle(element);
         return {
           background: style.backgroundColor,
-          filter: style.backdropFilter || style.webkitBackdropFilter,
+          filter:
+            style.getPropertyValue("-webkit-backdrop-filter") ||
+            style.backdropFilter,
         };
       });
       expect(backdrop.background).not.toBe("rgba(0, 0, 0, 0)");
