@@ -17,6 +17,8 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+    - name: Generate Next.js route types
+      run: npx next typegen
     - name: TypeScript check
       run: npx tsc --noEmit
     - name: Run Playwright tests
