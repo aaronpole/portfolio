@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
+import { createPortal } from "react-dom";
 import { ArrowUpRight, Mail, Menu, X } from "lucide-react";
 import { emailHref, links, nav } from "@/lib/site";
 import { RandomFact } from "@/components/random-fact";
@@ -8,34 +9,107 @@ import { SocialIcon } from "@/components/social-icon";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [portalReady, setPortalReady] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const ignoreIndexClickRef = useRef(false);
+  const touchResetTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setPortalReady(true);
+    return () => {
+      if (touchResetTimerRef.current !== null) {
+        window.clearTimeout(touchResetTimerRef.current);
+      }
+    };
+  }, []);
 
   const closeIndex = useCallback(() => {
     setOpen(false);
-    const dialog = dialogRef.current;
-    if (dialog && dialog.open) {
-      dialog.close();
-    }
   }, []);
 
   const openIndex = useCallback(() => {
     setOpen(true);
-    const dialog = dialogRef.current;
-    if (dialog && !dialog.open) {
-      dialog.showModal();
-    }
   }, []);
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+  const handleIndexPointerUp = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      if (event.pointerType !== "touch") return;
+      event.preventDefault();
+      ignoreIndexClickRef.current = true;
+      if (touchResetTimerRef.current !== null) {
+        window.clearTimeout(touchResetTimerRef.current);
+      }
+      openIndex();
+      event.currentTarget.blur();
+      touchResetTimerRef.current = window.setTimeout(() => {
+        ignoreIndexClickRef.current = false;
+        touchResetTimerRef.current = null;
+      }, 800);
+    },
+    [openIndex],
+  );
 
-    if (open && !dialog.open) {
-      dialog.showModal();
-    } else if (!open && dialog.open) {
-      dialog.close();
+  const handleIndexClick = useCallback(() => {
+    if (ignoreIndexClickRef.current) {
+      ignoreIndexClickRef.current = false;
+      if (touchResetTimerRef.current !== null) {
+        window.clearTimeout(touchResetTimerRef.current);
+        touchResetTimerRef.current = null;
+      }
+      return;
     }
-  }, [open]);
+    openIndex();
+  }, [openIndex]);
+
+  // Use the same React-controlled overlay pattern as Random Fact. Keeping
+  // Index out of the sticky/backdrop-filtered header avoids native dialog
+  // hit-testing differences in mobile Safari.
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      closeRef.current?.focus({ preventScroll: true });
+    });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeIndex();
+        return;
+      }
+
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          document.querySelectorAll<HTMLElement>(
+            "#site-index button:not([disabled]), #site-index a[href]",
+          ),
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      triggerRef.current?.focus({ preventScroll: true });
+    };
+  }, [open, closeIndex]);
 
   // Lock background scrolling while open, restore on close
   useEffect(() => {
@@ -110,7 +184,9 @@ export function SiteHeader() {
             <RandomFact />
             <button
               type="button"
-              onClick={openIndex}
+              ref={triggerRef}
+              onPointerUp={handleIndexPointerUp}
+              onClick={handleIndexClick}
               aria-expanded={open}
               aria-controls="site-index"
               aria-haspopup="dialog"
@@ -123,111 +199,115 @@ export function SiteHeader() {
         </div>
       </header>
 
-      <dialog
-        id="site-index"
-        ref={dialogRef}
-        className="index-dialog"
-        aria-labelledby="site-index-title"
-        onCancel={() => {
-          closeIndex();
-        }}
-        onClose={closeIndex}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) closeIndex();
-        }}
-      >
-        <div className="shell flex h-full flex-col overflow-y-auto py-5">
-          <div className="flex items-center justify-between border-b border-ink/15 pb-4">
-            <p id="site-index-title" className="eyebrow text-ink-soft">
-              Index — Aaron Paul
-            </p>
-            <button
-              type="button"
-              onClick={closeIndex}
-              className="inline-flex min-h-11 items-center gap-2 border border-ink/20 px-3 py-2 text-[0.65rem] font-mono uppercase tracking-[0.12em] transition-colors hover:border-ink lg:min-h-0 touch-manipulation"
-            >
-              Close
-              <X className="size-4" aria-hidden="true" />
-            </button>
-          </div>
-
-          <nav aria-label="Sections" className="flex flex-1 flex-col justify-center">
-            <ul className="divide-y divide-ink/10">
-              {nav.map((item) => (
-                <li key={item.id}>
-                  <a
-                    href={`#${item.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleNavClick(item.id);
-                    }}
-                    className="group flex items-baseline justify-between gap-4 py-4 touch-manipulation"
-                  >
-                    <span className="flex items-baseline gap-4">
-                      <span className="eyebrow text-accent">{item.index}</span>
-                      <span className="font-display text-4xl font-bold tracking-[-0.045em] sm:text-5xl">
-                        {item.label}
-                      </span>
-                    </span>
-                    <ArrowUpRight
-                      className="size-5 shrink-0 text-ink-faint transition-colors group-hover:text-accent"
-                      aria-hidden="true"
-                    />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="border-t border-ink/15 pt-5">
-            <p className="annotation">Elsewhere</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <a
-                href={links.github}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Aaron Paul on GitHub"
-                title="GitHub"
-                className="tag hover:bg-ink hover:text-paper-light touch-manipulation"
-              >
-                <SocialIcon name="github" className="size-3.5" />
-                GitHub
-              </a>
-              <a
-                href={links.linkedin}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Aaron Paul on LinkedIn"
-                title="LinkedIn"
-                className="tag hover:bg-ink hover:text-paper-light touch-manipulation"
-              >
-                <SocialIcon name="linkedin" className="size-3.5" />
-                LinkedIn
-              </a>
-              <a
-                href={links.instagram}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Aaron Paul on Instagram"
-                title="Instagram"
-                className="tag hover:bg-ink hover:text-paper-light touch-manipulation"
-              >
-                <SocialIcon name="instagram" className="size-3.5" />
-                Instagram
-              </a>
-              <a
-                href={emailHref}
-                aria-label="Email Aaron Paul"
-                title="Email"
-                className="tag hover:bg-ink hover:text-paper-light touch-manipulation"
-              >
-                <Mail className="size-3.5" aria-hidden="true" />
-                Email
-              </a>
-            </div>
-          </div>
-        </div>
-      </dialog>
+      {portalReady &&
+        open &&
+        createPortal(
+          <div
+            id="site-index"
+            className="index-overlay"
+            data-site-index-overlay
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="site-index-title"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) closeIndex();
+            }}
+          >
+                  <div className="shell flex h-full flex-col overflow-y-auto py-5">
+                    <div className="flex items-center justify-between border-b border-ink/15 pb-4">
+                      <p id="site-index-title" className="eyebrow text-ink-soft">
+                        Index — Aaron Paul
+                      </p>
+                      <button
+                        type="button"
+                        ref={closeRef}
+                        onClick={closeIndex}
+                        className="inline-flex min-h-11 items-center gap-2 border border-ink/20 px-3 py-2 text-[0.65rem] font-mono uppercase tracking-[0.12em] transition-colors hover:border-ink lg:min-h-0 touch-manipulation"
+                      >
+                        Close
+                        <X className="size-4" aria-hidden="true" />
+                      </button>
+                    </div>
+          
+                    <nav aria-label="Sections" className="flex flex-1 flex-col justify-center">
+                      <ul className="divide-y divide-ink/10">
+                        {nav.map((item) => (
+                          <li key={item.id}>
+                            <a
+                              href={`#${item.id}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleNavClick(item.id);
+                              }}
+                              className="group flex items-baseline justify-between gap-4 py-4 touch-manipulation"
+                            >
+                              <span className="flex items-baseline gap-4">
+                                <span className="eyebrow text-accent">{item.index}</span>
+                                <span className="font-display text-4xl font-bold tracking-[-0.045em] sm:text-5xl">
+                                  {item.label}
+                                </span>
+                              </span>
+                              <ArrowUpRight
+                                className="size-5 shrink-0 text-ink-faint transition-colors group-hover:text-accent"
+                                aria-hidden="true"
+                              />
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </nav>
+          
+                    <div className="border-t border-ink/15 pt-5">
+                      <p className="annotation">Elsewhere</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <a
+                          href={links.github}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Aaron Paul on GitHub"
+                          title="GitHub"
+                          className="tag hover:bg-ink hover:text-paper-light touch-manipulation"
+                        >
+                          <SocialIcon name="github" className="size-3.5" />
+                          GitHub
+                        </a>
+                        <a
+                          href={links.linkedin}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Aaron Paul on LinkedIn"
+                          title="LinkedIn"
+                          className="tag hover:bg-ink hover:text-paper-light touch-manipulation"
+                        >
+                          <SocialIcon name="linkedin" className="size-3.5" />
+                          LinkedIn
+                        </a>
+                        <a
+                          href={links.instagram}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Aaron Paul on Instagram"
+                          title="Instagram"
+                          className="tag hover:bg-ink hover:text-paper-light touch-manipulation"
+                        >
+                          <SocialIcon name="instagram" className="size-3.5" />
+                          Instagram
+                        </a>
+                        <a
+                          href={emailHref}
+                          aria-label="Email Aaron Paul"
+                          title="Email"
+                          className="tag hover:bg-ink hover:text-paper-light touch-manipulation"
+                        >
+                          <Mail className="size-3.5" aria-hidden="true" />
+                          Email
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
