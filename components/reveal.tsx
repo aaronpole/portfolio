@@ -8,7 +8,10 @@ function subscribe() {
 }
 
 function getSnapshot() {
-  return typeof window !== "undefined" && "IntersectionObserver" in window;
+  if (typeof window === "undefined") return false;
+  const userAgent = window.navigator.userAgent;
+  const isWebKit = /AppleWebKit\//.test(userAgent) && !/Chrome\//.test(userAgent);
+  return !isWebKit && "IntersectionObserver" in window;
 }
 
 function getServerSnapshot() {
@@ -32,7 +35,7 @@ export function Reveal({
 
   if (!canAnimate) {
     return (
-      <div className={className} data-reveal="">
+      <div className={className} data-reveal="" style={{ opacity: 1, transform: "none" }}>
         {children}
       </div>
     );
@@ -55,4 +58,3 @@ export function Reveal({
     </motion.div>
   );
 }
-
