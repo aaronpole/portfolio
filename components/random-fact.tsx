@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { facts } from "@/lib/facts";
@@ -30,6 +30,11 @@ export function RandomFact() {
 
   useEffect(() => {
     setPortalReady(true);
+    return () => {
+      if (touchResetTimerRef.current !== null) {
+        window.clearTimeout(touchResetTimerRef.current);
+      }
+    };
   }, []);
 
   const closeRandomFact = useCallback(() => {
@@ -49,7 +54,7 @@ export function RandomFact() {
   // touchend explicitly, then ignore the synthetic click generated for that
   // same tap so the card opens once and selects only one fact.
   const handleTouchEnd = useCallback(
-    (event: React.TouchEvent<HTMLButtonElement>) => {
+    (event: TouchEvent<HTMLButtonElement>) => {
       event.preventDefault();
       ignoreClickAfterTouchRef.current = true;
 
