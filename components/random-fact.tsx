@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { facts } from "@/lib/facts";
+import { DialogPortal } from "@/components/dialog-portal";
+import {
+  closeModal,
+  openModal,
+  supportsNativeModal,
+} from "@/lib/modal";
 
 /**
  * Pick the next fact, never repeating the previous one when there is a choice.
@@ -25,11 +31,6 @@ export function RandomFact() {
 
   const closeRandomFact = useCallback(() => {
     setOpen(false);
-    setFlipped(false);
-    const dialog = dialogRef.current;
-    if (dialog && dialog.open) {
-      dialog.close();
-    }
   }, []);
 
   const openRandomFact = useCallback(() => {
@@ -38,45 +39,54 @@ export function RandomFact() {
     setFactIndex(nextIndex);
     setFlipped(false);
     setOpen(true);
-    const dialog = dialogRef.current;
-    if (dialog && !dialog.open) {
-      dialog.showModal();
-    }
   }, []);
 
+  // Single source of truth: React state drives the native dialog lifecycle.
+  // Portaling to <body> keeps the top layer out of the backdrop-filtered header,
+  // and openModal() covers browsers without HTMLDialogElement.showModal.
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    if (open && !dialog.open) {
-      dialog.showModal();
-    } else if (!open && dialog.open) {
-      dialog.close();
-    }
-  }, [open]);
-
-  // Lock background scrolling while open, restore on close
-  useEffect(() => {
     if (open) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
+      openModal(dialog);
+    } else {
+      closeModal(dialog);
     }
   }, [open]);
 
-  // Handle Escape key
+  // Legacy fallback has no native `cancel` event, so supply Escape there.
   useEffect(() => {
-    if (!open) return;
+    if (!open || supportsNativeModal) return;
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeRandomFact();
-      }
+      if (event.key === "Escape") closeRandomFact();
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, closeRandomFact]);
+
+  // Reset the flip on dismissal without setting state inside an effect.
+  const handleDialogClose = useCallback(() => {
+    setOpen(false);
+    setFlipped(false);
+  }, []);
+
+  // Lock background scrolling while open, restore on close. The root element
+  // is the viewport scroller in WebKit, so it has to be locked as well.
+  useEffect(() => {
+    if (open) {
+      const bodyOverflow = document.body.style.overflow;
+      const htmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = bodyOverflow;
+        document.documentElement.style.overflow = htmlOverflow;
+      };
+    }
+  }, [open]);
 
   const number = String(factIndex + 1).padStart(2, "0");
   const fact = facts[factIndex];
@@ -93,89 +103,96 @@ export function RandomFact() {
         Random fact
       </button>
 
-      <dialog
-        id="random-fact-dialog"
-        ref={dialogRef}
-        className="random-fact-dialog"
-        aria-labelledby="random-fact-title"
-        onCancel={() => {
-          closeRandomFact();
-        }}
-        onClose={closeRandomFact}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) {
+      <DialogPortal>
+        <dialog
+          id="random-fact-dialog"
+          ref={dialogRef}
+          className="random-fact-dialog"
+          aria-labelledby="random-fact-title"
+          onCancel={(event) => {
+            // Take over native Escape dismissal so the state effect is the only
+            // thing that closes the dialog (no duplicate close calls).
+            event.preventDefault();
             closeRandomFact();
-            return;
-          }
-          const rect = event.currentTarget.getBoundingClientRect();
-          const isInside =
-            rect.top <= event.clientY &&
-            event.clientY <= rect.bottom &&
-            rect.left <= event.clientX &&
-            event.clientX <= rect.right;
-          if (!isInside) {
-            closeRandomFact();
-          }
-        }}
-      >
-        <h2 id="random-fact-title" className="sr-only">
-          Random fact
-        </h2>
-
-        <div
-          className="random-fact-panel"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <button
-            type="button"
-            onClick={closeRandomFact}
-            aria-label="Close random fact"
-            className="random-fact-close"
-          >
-            Close
-            <X className="size-4" aria-hidden="true" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setFlipped((current) => !current)}
-            aria-label={
-              flipped ? `Random fact ${number}: ${fact}` : "Reveal random fact"
+          }}
+          onClose={handleDialogClose}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              closeRandomFact();
+              return;
             }
-            className="fact-card"
-            data-flipped={flipped}
-          >
-            <span className="fact-card-inner">
-              <span
-                className="fact-face fact-face-front"
-                data-fact-face="front"
-                aria-hidden={flipped}
-              >
-                <span className="fact-front-meta">
-                  <span className="eyebrow text-ink-soft">Random fact</span>
-                  <span className="fact-marker" aria-hidden="true" />
-                </span>
-                <span className="fact-number">#{number}</span>
-              </span>
+            const rect = event.currentTarget.getBoundingClientRect();
+            const isInside =
+              rect.top <= event.clientY &&
+              event.clientY <= rect.bottom &&
+              rect.left <= event.clientX &&
+              event.clientX <= rect.right;
+            if (!isInside) {
+              closeRandomFact();
+            }
+          }}
+        >
+          <h2 id="random-fact-title" className="sr-only">
+            Random fact
+          </h2>
 
-              <span
-                className="fact-face fact-face-back"
-                data-fact-face="back"
-                data-fact-index={factIndex + 1}
-                aria-hidden={!flipped}
-              >
-                <span className="fact-back-meta">
-                  <span className="eyebrow text-accent">#{number}</span>
-                  <span className="eyebrow text-ink-faint">Random fact</span>
+          <div
+            className="random-fact-panel"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeRandomFact}
+              aria-label="Close random fact"
+              className="random-fact-close"
+            >
+              Close
+              <X className="size-4" aria-hidden="true" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFlipped((current) => !current)}
+              aria-label={
+                flipped
+                  ? `Random fact ${number}: ${fact}`
+                  : "Reveal random fact"
+              }
+              className="fact-card"
+              data-flipped={flipped}
+            >
+              <span className="fact-card-inner">
+                <span
+                  className="fact-face fact-face-front"
+                  data-fact-face="front"
+                  aria-hidden={flipped}
+                >
+                  <span className="fact-front-meta">
+                    <span className="eyebrow text-ink-soft">Random fact</span>
+                    <span className="fact-marker" aria-hidden="true" />
+                  </span>
+                  <span className="fact-number">#{number}</span>
                 </span>
-                <span className="fact-text" data-fact-text>
-                  {fact}
+
+                <span
+                  className="fact-face fact-face-back"
+                  data-fact-face="back"
+                  data-fact-index={factIndex + 1}
+                  aria-hidden={!flipped}
+                >
+                  <span className="fact-back-meta">
+                    <span className="eyebrow text-accent">#{number}</span>
+                    <span className="eyebrow text-ink-faint">Random fact</span>
+                  </span>
+                  <span className="fact-text" data-fact-text>
+                    {fact}
+                  </span>
                 </span>
               </span>
-            </span>
-          </button>
-        </div>
-      </dialog>
+            </button>
+          </div>
+        </dialog>
+      </DialogPortal>
     </>
   );
 }

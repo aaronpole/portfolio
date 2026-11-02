@@ -152,6 +152,13 @@ for (const { width, height } of viewports) {
     test("consecutive openings never repeat the same fact", async ({
       page,
     }) => {
+      // Twelve complete open/read/close cycles are legitimately slow under
+      // headless WebKit, which software-rasterises this long page (~150ms per
+      // frame) and therefore needs several animation frames per click. This
+      // keeps Playwright's default budget for every other test while giving
+      // this one the room to run all twelve cycles and all assertions.
+      test.slow();
+
       await page.goto("/");
 
       let previous: number | null = null;
@@ -189,12 +196,14 @@ for (const { width, height } of viewports) {
       page,
     }) => {
       await page.goto("/");
-      await page.evaluate(() => window.scrollTo(0, 800));
+      await page.evaluate(() =>
+        window.scrollTo({ top: 800, behavior: "instant" }),
+      );
       await expect
         .poll(() => page.evaluate(() => window.scrollY))
-        .toBeGreaterThan(0);
+        .toBe(800);
 
-      const before = await page.evaluate(() => window.scrollY);
+      const before = 800;
 
       const dialog = await openRandomFact(page);
       await page.waitForTimeout(300);
@@ -203,6 +212,11 @@ for (const { width, height } of viewports) {
         () => getComputedStyle(document.body).overflow,
       );
       expect(overflowWhileOpen).toBe("hidden");
+      expect(
+        await page.evaluate(
+          () => getComputedStyle(document.documentElement).overflow,
+        ),
+      ).toBe("hidden");
 
       await page.mouse.move(width / 2, height / 2);
       await page.mouse.wheel(0, 900);
@@ -216,6 +230,11 @@ for (const { width, height } of viewports) {
         () => getComputedStyle(document.body).overflow,
       );
       expect(overflowAfterClose).not.toBe("hidden");
+      expect(
+        await page.evaluate(
+          () => getComputedStyle(document.documentElement).overflow,
+        ),
+      ).not.toBe("hidden");
       expect(await page.evaluate(() => window.scrollY)).toBe(before);
 
       await page.mouse.move(width / 2, height / 2);

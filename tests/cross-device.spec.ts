@@ -22,20 +22,48 @@ for (const { name, width, height } of viewports) {
       for (const id of sectionIds) {
         const section = page.locator(`#${id}`);
         await expect(section).toBeAttached();
-        await section.scrollIntoViewIfNeeded();
-        await page.waitForTimeout(300);
+
+        // Use an explicit instant scroll so the check is about visibility, not
+        // WebKit's smooth-scroll timing (normal scrolling is covered by test 9).
+        await section.evaluate((element) => {
+          element.scrollIntoView({
+            block: "start",
+            behavior: "instant" as ScrollBehavior,
+          });
+        });
+
+        await expect
+          .poll(
+            () =>
+              section.evaluate((element) => {
+                const rect = element.getBoundingClientRect();
+                return rect.top < window.innerHeight && rect.bottom > 0;
+              }),
+            { message: `#${id} never scrolled into the viewport` },
+          )
+          .toBe(true);
 
         await expect(section).toBeVisible();
-        // Check that [data-reveal] elements in this section are visible (opacity > 0)
-        const revealOpacities = await section.locator("[data-reveal]").evaluateAll((els) =>
-          els.map((el) => {
-            const style = window.getComputedStyle(el);
-            return parseFloat(style.opacity);
-          }),
-        );
-        for (const opacity of revealOpacities) {
-          expect(opacity).toBeGreaterThan(0.5);
-        }
+
+        // Every reveal in the section must become opaque; poll instead of
+        // racing the transition with a fixed sleep.
+        await expect
+          .poll(
+            async () => {
+              const revealOpacities = await section
+                .locator("[data-reveal]")
+                .evaluateAll((els) =>
+                  els.map((el) =>
+                    parseFloat(window.getComputedStyle(el).opacity),
+                  ),
+                );
+              return revealOpacities.length
+                ? Math.min(...revealOpacities)
+                : 1;
+            },
+            { message: `a reveal inside #${id} stayed hidden` },
+          )
+          .toBeGreaterThan(0.5);
       }
     });
 
@@ -129,11 +157,19 @@ for (const { name, width, height } of viewports) {
         const brand = header?.querySelector("a[href='#top']");
         const rfBtn = header?.querySelector(".random-fact-trigger");
         const indexBtn = header?.querySelector("button.tag");
+        const nav = header?.querySelector("nav");
 
         const getBox = (el: Element | null | undefined) => {
           if (!el) return null;
           const r = el.getBoundingClientRect();
-          return { top: r.top, bottom: r.bottom, height: r.height, left: r.left, right: r.right };
+          return {
+            top: r.top,
+            bottom: r.bottom,
+            height: r.height,
+            left: r.left,
+            right: r.right,
+            display: window.getComputedStyle(el).display,
+          };
         };
 
         return {
@@ -141,24 +177,71 @@ for (const { name, width, height } of viewports) {
           brand: getBox(brand),
           rfBtn: getBox(rfBtn),
           indexBtn: getBox(indexBtn),
+          nav: getBox(nav),
         };
       });
 
       // Header height should stay at 64px (h-16), not expanded due to wrapping
       expect(headerInfo.headerH).toBeLessThanOrEqual(68);
 
-      // Buttons should not overlap
-      if (headerInfo.rfBtn && headerInfo.indexBtn) {
-        expect(headerInfo.rfBtn.right).toBeLessThanOrEqual(headerInfo.indexBtn.left + 2);
+      // Brand and the action cluster never collide, at any breakpoint.
+      expect(headerInfo.brand).not.toBeNull();
+      expect(headerInfo.rfBtn).not.toBeNull();
+      expect(headerInfo.brand!.right).toBeLessThanOrEqual(
+        headerInfo.rfBtn!.left + 2,
+      );
+
+      if (width < 768) {
+        // Mobile/tablet: Random Fact and Index are both visible and must not
+        // overlap. The desktop nav is intentionally hidden here.
+        expect(headerInfo.indexBtn).not.toBeNull();
+        expect(headerInfo.indexBtn!.display).not.toBe("none");
+        expect(headerInfo.rfBtn!.right).toBeLessThanOrEqual(
+          headerInfo.indexBtn!.left + 2,
+        );
+        expect(headerInfo.nav?.display).toBe("none");
+      } else {
+        // Desktop/tablet: Index lives in the full-screen dialog and its
+        // trigger is intentionally hidden; the inline nav is visible instead.
+        expect(headerInfo.indexBtn).not.toBeNull();
+        expect(headerInfo.indexBtn!.display).toBe("none");
+        expect(headerInfo.nav).not.toBeNull();
+        expect(headerInfo.nav!.display).not.toBe("none");
+
+        // Inline nav sits between the brand and the action cluster without
+        // overlapping either of them.
+        expect(headerInfo.brand!.right).toBeLessThanOrEqual(
+          headerInfo.nav!.left + 2,
+        );
+        expect(headerInfo.nav!.right).toBeLessThanOrEqual(
+          headerInfo.rfBtn!.left + 2,
+        );
       }
     });
 
     test("9. Normal scrolling works smoothly", async ({ page }) => {
       await page.goto("/");
-      await page.evaluate(() => window.scrollTo(0, 500));
-      await page.waitForTimeout(200);
-      const scrollY = await page.evaluate(() => window.scrollY);
-      expect(scrollY).toBeGreaterThan(0);
+
+      // Wheel scrolling is the real input path; poll for the result instead of
+      // assuming the smooth animation finished within a fixed delay.
+      await page.mouse.move(width / 2, height / 2);
+      await page.mouse.wheel(0, 700);
+      await expect
+        .poll(() => page.evaluate(() => window.scrollY), {
+          message: "wheel scrolling did not move the page",
+        })
+        .toBeGreaterThan(0);
+
+      // Programmatic scrolling to the middle must work too.
+      await page.evaluate(() =>
+        window.scrollTo({ top: 0, behavior: "instant" }),
+      );
+      await page.evaluate(() =>
+        window.scrollTo({ top: 500, behavior: "instant" }),
+      );
+      await expect
+        .poll(() => page.evaluate(() => window.scrollY))
+        .toBe(500);
     });
   });
 }
